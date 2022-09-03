@@ -1,8 +1,10 @@
 <template>
-  <h1>タイトル</h1>
-  <button @click="importCsv">インポート</button>
+  <h1>睡眠・体調データ</h1>
+  <input type="file" @change="importCsv" />
   <Line
     :chart-data="chartData"
+    :height="height"
+    :width="width"
   />
 </template>
 
@@ -14,9 +16,25 @@ export default {
   name: 'ExampleChart',
   components: { Line },
   methods: {
-    importCsv: function () {
-      this.chartData.datasets[0].label = 'great!';
-      this.chartData.datasets[0].data.January = '25';
+    importCsv: function (e) {
+      const importFile = e.target.files[0];
+      const reader = new FileReader();
+      let timeOfSleepingData = {};
+      let intensityOfSleepinessData = {};
+      let intensityOfNasalCongestion = {};
+      reader.readAsText(importFile);
+      reader.onload = () => {
+        let lines = reader.result.split('\r\n');
+        for (const string of lines) {
+          var dataElement = string.split(',');
+          timeOfSleepingData[dataElement[0]] = dataElement[1];
+          intensityOfSleepinessData[dataElement[0]] = dataElement[2];
+          intensityOfNasalCongestion[dataElement[0]] = dataElement[3];
+        }
+        this.chartData.datasets[0].data = timeOfSleepingData;
+        this.chartData.datasets[1].data = intensityOfSleepinessData;
+        this.chartData.datasets[2].data = intensityOfNasalCongestion;
+      };
     }
   },
   data() {
@@ -34,7 +52,7 @@ export default {
             }
           },
           {
-            label: '日中の眠気強度',
+            label: '日中の眠気強度(0〜4)',
             backgroundColor: 'rgba(102, 153, 255, 1.0)',
             borderColor: 'rgba(102, 153, 255, 1.0)',
             data: {
@@ -44,7 +62,7 @@ export default {
             },
           },
           {
-            label: '鼻詰まり強度',
+            label: '鼻詰まり強度(0〜4)',
             backgroundColor: 'rgba(102, 255, 102, 1.0)',
             borderColor: 'rgba(102, 255, 102, 1.0)',
             data: {
@@ -54,7 +72,9 @@ export default {
             },
           }
         ]
-      }
+      },
+      height: window.innerHeight / 2,
+      width: window.innerWidth,
     }
   }
 }
